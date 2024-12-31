@@ -70,19 +70,21 @@ namespace BarCodeScanner
             if (result != null && result.Text.Length == 3)
             {
                 // hiển thị 
-                if (result.Text != currentCode)
+                if (richTextBoxData.InvokeRequired)
                 {
-                    if (richTextBoxData.InvokeRequired)
-                    {
-                        richTextBoxData.Invoke(new MethodInvoker(() =>
-                        {
-                            richTextBoxData.AppendText(result.Text + '\n');
-                        }));
-                    }
-                    else
+                    richTextBoxData.Invoke(new MethodInvoker(() =>
                     {
                         richTextBoxData.AppendText(result.Text + '\n');
-                    }
+                    }));
+                }
+                else
+                {
+                    richTextBoxData.AppendText(result.Text + '\n');
+                }
+
+                if (result.Text == currentCode)
+                {
+                    return;
                 }
 
                 currentCode = result.Text;
@@ -92,11 +94,7 @@ namespace BarCodeScanner
                     bool res = (bool)plc.Read(address_read_flag);
 
                     // kiểm tra giá trị cho phép ghi
-                    if (!res)
-                    {
-                        MessageBox.Show("PLC is not Ready to Write Value!", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
+                    if (res)
                     {
                         // ghi vào PLC
                         plc.Write(address_write, Convert.ToInt16(currentCode));
@@ -106,6 +104,7 @@ namespace BarCodeScanner
                 catch (Exception ex) 
                 {
                     MessageBox.Show(ex.Message, "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
             }
 
